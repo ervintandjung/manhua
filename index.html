@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MangaVoid</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--void:#0A0A0F;--panel:#111118;--surface:#18181F;--border:#25252E;--ink:#EEEEF5;--muted:#6060A0;--accent:#FF3D5A;--blue:#5E5BFF;--yellow:#FFD166;--green:#06D6A0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 1rem;height:52px;display:flex;align-items:center;gap:.75rem}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.08em;flex-shrink:0;color:var(--ink)}
+.logo b{color:var(--accent)}
+.sbar{flex:1;display:flex;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:border-color .2s}
+.sbar:focus-within{border-color:var(--blue)}
+.sbar input{flex:1;background:none;border:none;color:var(--ink);padding:.45rem .9rem;font-size:.84rem;font-family:'Inter',sans-serif;outline:none}
+.sbar input::placeholder{color:var(--muted)}
+.sbar button{background:var(--accent);border:none;color:#fff;padding:0 .9rem;font-size:.72rem;font-weight:700;font-family:'JetBrains Mono',sans-serif;cursor:pointer;letter-spacing:.05em}
+/* FILTER */
+.fbar{display:flex;gap:.4rem;padding:.5rem 1rem;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.fbar::-webkit-scrollbar{display:none}
+.ftab{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.25rem .7rem;border-radius:4px;cursor:pointer;font-size:.68rem;font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap;transition:all .15s}
+.ftab.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ftab[data-t="manhwa"].on{background:var(--blue);border-color:var(--blue)}
+.ftab[data-t="manhua"].on{background:#FF9F1C;border-color:#FF9F1C}
+/* MAIN */
+main{padding:.9rem 1rem;max-width:1200px;margin:0 auto}
+.sh{display:flex;align-items:center;gap:.55rem;margin-bottom:.8rem}
+.sh h2{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:.06em}
+.stag{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--accent);background:rgba(255,61,90,.1);border:1px solid rgba(255,61,90,.25);padding:.1rem .38rem;border-radius:3px}
+.stag.b{color:var(--blue);background:rgba(94,91,255,.1);border-color:rgba(94,91,255,.25)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.65rem;margin-bottom:2rem}
+/* CARD */
+.card{cursor:pointer;border-radius:7px;overflow:hidden;background:var(--panel);border:1px solid var(--border);transition:transform .18s,border-color .18s;position:relative}
+.card:active,.card:hover{transform:translateY(-3px);border-color:var(--accent)}
+.card img{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;background:var(--surface)}
+.cph{width:100%;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;background:var(--surface);font-size:2rem;display:none}
+.bdg{position:absolute;top:.3rem;left:.3rem;font-family:'JetBrains Mono',monospace;font-size:.56rem;font-weight:700;padding:.1rem .28rem;border-radius:3px}
+.bm{background:var(--accent);color:#fff}.bh{background:var(--blue);color:#fff}.bc{background:#FF9F1C;color:#fff}
+.ci{padding:.42rem}
+.ct{font-size:.72rem;font-weight:500;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cm{margin-top:.2rem;font-size:.62rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+/* SKELETON */
+.sk{background:linear-gradient(90deg,var(--surface) 25%,#222230 50%,var(--surface) 75%);background-size:200% 100%;animation:sh 1.4s infinite;border-radius:4px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skc{border-radius:7px;overflow:hidden;border:1px solid var(--border)}
+.ski{aspect-ratio:2/3;width:100%}.skt{height:.7rem;margin:.42rem}.skt2{height:.58rem;margin:.2rem .42rem .42rem;width:55%}
+/* DETAIL OVERLAY */
+#dv{display:none;position:fixed;inset:0;z-index:150;background:rgba(10,10,15,.97);backdrop-filter:blur(10px);overflow-y:auto;padding:1rem}
+.din{max-width:680px;margin:0 auto;background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative}
+.dh{display:flex;gap:1rem;padding:1rem}
+.dc{width:108px;flex-shrink:0;border-radius:7px;overflow:hidden;aspect-ratio:2/3;background:var(--surface)}
+.dc img{width:100%;height:100%;object-fit:cover}
+.di .dbdg{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.59rem;font-weight:700;padding:.1rem .38rem;border-radius:3px;margin-bottom:.5rem}
+.di h1{font-family:'Bebas Neue',sans-serif;font-size:1.28rem;letter-spacing:.04em;line-height:1.15;margin-bottom:.35rem}
+.di .dau{color:var(--muted);font-size:.73rem;margin-bottom:.5rem}
+.dtags{display:flex;flex-wrap:wrap;gap:.28rem;margin-bottom:.6rem}
+.dtag{font-size:.6rem;padding:.1rem .38rem;border-radius:3px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.ddesc{font-size:.73rem;line-height:1.6;color:rgba(238,238,245,.65);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.dacts{display:flex;gap:.42rem;margin-top:.75rem;flex-wrap:wrap}
+.rbtn{background:var(--accent);border:none;color:#fff;padding:.48rem 1rem;border-radius:6px;cursor:pointer;font-weight:700;font-size:.78rem;font-family:'Inter',sans-serif}
+.mbtn{background:var(--surface);border:1px solid var(--border);color:var(--ink);padding:.48rem .85rem;border-radius:6px;font-size:.73rem;text-decoration:none;display:inline-flex;align-items:center}
+.xbtn{position:absolute;top:.65rem;right:.65rem;background:var(--surface);border:1px solid var(--border);color:var(--ink);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center}
+/* CHAPTER LIST */
+.csec{padding:0 1rem 1rem}
+.cstit{font-family:'Bebas Neue',sans-serif;font-size:.9rem;letter-spacing:.05em;color:var(--muted);margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.ccnt{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--blue)}
+.clist{display:flex;flex-direction:column;gap:.25rem;max-height:280px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.chi{display:flex;align-items:center;justify-content:space-between;padding:.5rem .7rem;border-radius:5px;background:var(--surface);border:1px solid transparent;cursor:pointer;font-size:.74rem;transition:border-color .15s;gap:.4rem}
+.chi:hover,.chi:active{border-color:var(--blue)}
+.chn{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue);font-size:.67rem;flex-shrink:0;min-width:52px}
+.cht{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chd{color:var(--muted);font-size:.6rem;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.chlg{font-size:.58rem;padding:.08rem .28rem;border-radius:3px;flex-shrink:0}
+.lg-id{background:rgba(6,214,160,.15);color:var(--green);border:1px solid rgba(6,214,160,.2)}
+.lg-en{background:rgba(96,96,160,.15);color:var(--muted);border:1px solid rgba(96,96,160,.2)}
+/* READER */
+#rv{display:none;position:fixed;inset:0;z-index:200;background:var(--void);overflow-y:auto}
+.rh{position:sticky;top:0;background:rgba(10,10,15,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.5rem .85rem;display:flex;align-items:center;gap:.55rem;z-index:10}
+.bbtn{background:var(--surface);border:1px solid var(--border);color:var(--ink);padding:.35rem .7rem;border-radius:5px;cursor:pointer;font-size:.73rem;font-weight:500;flex-shrink:0;font-family:'Inter',sans-serif}
+.rtit{font-size:.73rem;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cnav{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
+.nvbtn{background:var(--surface);border:1px solid var(--border);color:var(--ink);padding:.3rem .52rem;border-radius:5px;cursor:pointer;font-size:.75rem;transition:all .15s}
+.nvbtn:hover:not(:disabled){background:var(--accent);border-color:var(--accent)}
+.nvbtn:disabled{opacity:.3;cursor:not-allowed}
+.csel{background:var(--surface);border:1px solid var(--border);color:var(--ink);padding:.3rem .42rem;border-radius:5px;font-size:.68rem;font-family:'JetBrains Mono',monospace;cursor:pointer;outline:none;max-width:130px}
+.pages{max-width:750px;margin:0 auto;padding:.35rem;display:flex;flex-direction:column;gap:3px}
+.pages img{width:100%;display:block}
+/* STATUS / MISC */
+.sts{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:.76rem;font-family:'JetBrains Mono',monospace;line-height:1.8}
+.err{color:var(--accent)}
+.nores{grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:.78rem}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:.35rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(min-width:480px){.grid{grid-template-columns:repeat(auto-fill,minmax(142px,1fr))}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">MANGA<b>VOID</b></div>
+  <div class="sbar">
+    <input type="text" id="si" placeholder="Cari manga / manhwa / manhua..." autocomplete="off">
+    <button onclick="doSearch()">GO</button>
+  </div>
+</header>
+
+<div class="fbar">
+  <button class="ftab on" data-t="all"     onclick="fType('all',this)">ALL</button>
+  <button class="ftab"    data-t="manga"   onclick="fType('manga',this)">MANGA</button>
+  <button class="ftab"    data-t="manhwa"  onclick="fType('manhwa',this)">MANHWA</button>
+  <button class="ftab"    data-t="manhua"  onclick="fType('manhua',this)">MANHUA</button>
+  <button class="ftab"    data-t="g"       onclick="fGenre('action',this)">ACTION</button>
+  <button class="ftab"    data-t="g"       onclick="fGenre('romance',this)">ROMANCE</button>
+  <button class="ftab"    data-t="g"       onclick="fGenre('fantasy',this)">FANTASY</button>
+  <button class="ftab"    data-t="g"       onclick="fGenre('isekai',this)">ISEKAI</button>
+</div>
+
+<main id="mv">
+  <div class="sh"><h2>POPULER</h2><span class="stag">🔥 TOP</span></div>
+  <div class="grid" id="pg"></div>
+  <div class="sh"><h2>TERBARU</h2><span class="stag b">↻ NEW</span></div>
+  <div class="grid" id="ng"></div>
+</main>
+
+<!-- DETAIL OVERLAY -->
+<div id="dv">
+  <div class="din">
+    <button class="xbtn" onclick="closeDet()">✕</button>
+    <div class="dh">
+      <div class="dc"><img id="dimg" src="" alt=""></div>
+      <div class="di">
+        <span id="dbdg" class="dbdg bm">MANGA</span>
+        <h1 id="dtit">—</h1>
+        <p id="dau" class="dau"></p>
+        <div id="dtags" class="dtags"></div>
+        <p id="ddesc" class="ddesc"></p>
+        <div class="dacts">
+          <button class="rbtn" onclick="readFirst()">▶ BACA CH.1</button>
+          <a id="dlink" class="mbtn" href="#" target="_blank">MangaDex ↗</a>
+        </div>
+      </div>
+    </div>
+    <div class="csec">
+      <div class="cstit">CHAPTER LIST <span id="ccnt" class="ccnt"></span></div>
+      <div class="clist" id="clist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- READER -->
+<div id="rv">
+  <div class="rh">
+    <button class="bbtn" onclick="closeRdr()">← Back</button>
+    <span class="rtit" id="rtit">—</span>
+    <div class="cnav">
+      <button class="nvbtn" id="pb" onclick="navCh(-1)">‹</button>
+      <select class="csel" id="csel" onchange="jumpCh(this.value)"></select>
+      <button class="nvbtn" id="nb" onclick="navCh(1)">›</button>
+    </div>
+  </div>
+  <div class="pages" id="pages"><div class="sts"><span class="spin"></span>Memuat...</div></div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+// Ganti WORKER_URL dengan URL worker kamu
+// Contoh: 'https://mangavoid.vinzprostore.workers.dev'
+var W = 'https://manhwavoid.vinzprostore.workers.dev';  // ← GANTI INI
+// ────────────────────────────────────────────────────────────
+
+var GENRE_MAP = {
+  action:  '5920b825-4181-4a17-befd-0de7f8555099',
+  romance: '423e2eae-a7a2-4a8b-ac03-a8351462d71d',
+  fantasy: 'cdc58593-87dd-415e-bbc0-2ec27bf404cc',
+  isekai:  'ace04997-f6bd-436e-b261-779182193d3d'
+};
+
+var curManga=null, curChs=[], curIdx=0;
+var curType='all', curGenre=null;
+var popAll=[], newAll=[];
+
+// ── API ──────────────────────────────────────────────────────
+async function api(path) {
+  // 1. Worker proxy (paling reliable)
+  if (W) {
+    try {
+      var r = await fetch(W + '/api' + path, { signal: AbortSignal.timeout(12000) });
+      if (r.ok) return r.json();
+    } catch(e) { console.warn('Worker gagal:', e.message); }
+  }
+  // 2. Direct MangaDex (kadang kena CORS di mobile)
+  try {
+    var r = await fetch('https://api.mangadex.org' + path, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (r.ok) return r.json();
+  } catch(e) { console.warn('Direct gagal:', e.message); }
+  // 3. corsproxy.io fallback
+  var r = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://api.mangadex.org' + path), {
+    signal: AbortSignal.timeout(14000)
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function coverSrc(m) {
+  var rel = (m.relationships||[]).find(function(r){ return r.type==='cover_art'; });
+  if (!rel || !rel.attributes) return null;
+  var f = rel.attributes.fileName;
+  if (!f) return null;
+  if (W) return W + '/covers/' + m.id + '/' + f + '.256.jpg';
+  return 'https://uploads.mangadex.org/covers/' + m.id + '/' + f + '.256.jpg';
+}
+
+function mTitle(m) {
+  var t = m.attributes.title;
+  return t.en || t['ja-ro'] || t.ja || t.id || Object.values(t)[0] || 'Untitled';
+}
+
+function mType(m) {
+  var c = m.attributes.originalLanguage;
+  if (c === 'ko') return 'manhwa';
+  if (c === 'zh' || c === 'zh-hk') return 'manhua';
+  return 'manga';
+}
+
+function bc(t) { return t==='manhwa' ? 'bh' : t==='manhua' ? 'bc' : 'bm'; }
+
+function ago(d) {
+  if (!d) return '';
+  var s = Math.floor((Date.now() - new Date(d)) / 1000);
+  if (s < 86400) return 'Hari ini';
+  if (s < 604800) return Math.floor(s/86400) + 'h lalu';
+  if (s < 2592000) return Math.floor(s/604800) + 'mg lalu';
+  return Math.floor(s/2592000) + 'bl lalu';
+}
+
+// ── SKELETON ────────────────────────────────────────────────
+function skels(id, n) {
+  var h = '';
+  for (var i=0; i<n; i++) h += '<div class="skc"><div class="sk ski"></div><div class="sk skt"></div><div class="sk skt2"></div></div>';
+  document.getElementById(id).innerHTML = h;
+}
+
+// ── CARD ────────────────────────────────────────────────────
+function card(m) {
+  var tp = mType(m), ti = mTitle(m), cu = coverSrc(m);
+  var ch = m.attributes.lastChapter || '?';
+  return '<div class="card" onclick="openDet(\'' + m.id + '\')">'
+    + '<span class="badge ' + bc(tp) + '">' + tp.toUpperCase() + '</span>'
+    + (cu ? '<img src="' + cu + '" alt="' + ti.replace(/'/g,"&#39;") + '" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' : '')
+    + '<div class="cph"' + (cu ? '' : ' style="display:flex"') + '>📖</div>'
+    + '<div class="ci"><div class="ct">' + ti + '</div>'
+    + '<div class="cm">Ch.' + ch + '</div></div></div>';
+}
+
+function renderGrid(id, data) {
+  var g = document.getElementById(id);
+  if (!data || !data.length) { g.innerHTML = '<div class="nores">Tidak ada hasil.</div>'; return; }
+  var f = curType === 'all' ? data : data.filter(function(m){ return mType(m) === curType; });
+  g.innerHTML = f.length ? f.map(card).join('') : '<div class="nores">Tidak ada ' + curType + '.</div>';
+}
+
+// ── HOME ────────────────────────────────────────────────────
+async function fetchPop() {
+  skels('pg', 12);
+  try {
+    var q = '/manga?limit=40&order[followedCount]=desc&includes[]=cover_art&hasAvailableChapters=true&contentRating[]=safe&contentRating[]=suggestive'
+      + (curGenre ? '&includedTags[]=' + curGenre : '');
+    var j = await api(q);
+    popAll = j.data || [];
+    renderGrid('pg', popAll);
+  } catch(e) {
+    document.getElementById('pg').innerHTML = '<div class="nores err">❌ ' + e.message + '</div>';
+  }
+}
+
+async function fetchNew() {
+  skels('ng', 12);
+  try {
+    var q = '/manga?limit=40&order[latestUploadedChapter]=desc&includes[]=cover_art&hasAvailableChapters=true&contentRating[]=safe&contentRating[]=suggestive'
+      + (curGenre ? '&includedTags[]=' + curGenre : '');
+    var j = await api(q);
+    newAll = j.data || [];
+    renderGrid('ng', newAll);
+  } catch(e) {
+    document.getElementById('ng').innerHTML = '<div class="nores err">❌ ' + e.message + '</div>';
+  }
+}
+
+// ── SEARCH ──────────────────────────────────────────────────
+async function doSearch() {
+  var q = document.getElementById('si').value.trim();
+  if (!q) { resetHome(); return; }
+  document.getElementById('mv').innerHTML =
+    '<div class="sh"><h2>HASIL: "' + q + '"</h2><span class="stag">SEARCH</span></div>'
+    + '<div class="grid" id="sg"></div>';
+  skels('sg', 18);
+  try {
+    var j = await api('/manga?title=' + encodeURIComponent(q) + '&limit=32&includes[]=cover_art&hasAvailableChapters=true&contentRating[]=safe&contentRating[]=suggestive');
+    renderGrid('sg', j.data || []);
+  } catch(e) {
+    document.getElementById('sg').innerHTML = '<div class="nores err">❌ ' + e.message + '</div>';
+  }
+}
+
+function resetHome() {
+  document.getElementById('mv').innerHTML =
+    '<div class="sh"><h2>POPULER</h2><span class="stag">🔥 TOP</span></div><div class="grid" id="pg"></div>'
+    + '<div class="sh"><h2>TERBARU</h2><span class="stag b">↻ NEW</span></div><div class="grid" id="ng"></div>';
+  fetchPop(); fetchNew();
+}
+
+document.getElementById('si').addEventListener('keydown', function(e){ if(e.key==='Enter') doSearch(); });
+
+// ── FILTER ──────────────────────────────────────────────────
+function fType(t, btn) {
+  curType = t; curGenre = null;
+  document.querySelectorAll('.ftab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  if (popAll.length) renderGrid('pg', popAll);
+  if (newAll.length) renderGrid('ng', newAll);
+}
+
+function fGenre(g, btn) {
+  curGenre = GENRE_MAP[g] || null; curType = 'all';
+  document.querySelectorAll('.ftab').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  fetchPop(); fetchNew();
+}
+
+// ── DETAIL ──────────────────────────────────────────────────
+async function openDet(id) {
+  document.getElementById('dv').style.display = 'block';
+  document.getElementById('dtit').textContent = '...';
+  document.getElementById('clist').innerHTML = '<div class="sts"><span class="spin"></span>Memuat...</div>';
+
+  try {
+    var res = await Promise.all([
+      api('/manga/' + id + '?includes[]=cover_art&includes[]=author&includes[]=artist'),
+      // Minta EN + ID, limit 500
+      api('/manga/' + id + '/feed?limit=500&translatedLanguage[]=en&translatedLanguage[]=id&order[chapter]=desc&contentRating[]=safe&contentRating[]=suggestive')
+    ]);
+
+    var m = res[0].data;
+    curManga = m;
+
+    // Deduplicate chapters: prefer ID over EN for same chapter number
+    var raw = res[1].data || [];
+    var map = {};
+    raw.forEach(function(ch) {
+      var n = ch.attributes.chapter || '0';
+      var lg = ch.attributes.translatedLanguage || '';
+      if (!map[n]) { map[n] = ch; }
+      else if (lg === 'id' && map[n].attributes.translatedLanguage !== 'id') { map[n] = ch; }
+    });
+    curChs = Object.values(map).sort(function(a,b){
+      return parseFloat(b.attributes.chapter||0) - parseFloat(a.attributes.chapter||0);
+    });
+
+    var tp = mType(m), ti = mTitle(m), cu = coverSrc(m);
+    var desc = (m.attributes.description || {});
+    desc = desc.id || desc.en || Object.values(desc)[0] || 'Tidak ada deskripsi.';
+    var auths = (m.relationships||[]).filter(function(r){ return r.type==='author'; })
+      .map(function(r){ return r.attributes && r.attributes.name; }).filter(Boolean).join(', ');
+    var tags = (m.attributes.tags||[]).slice(0,6).map(function(t){
+      return '<span class="dtag">' + (t.attributes.name.en||'') + '</span>';
+    }).join('');
+
+    document.getElementById('dimg').src = cu || '';
+    document.getElementById('dbdg').textContent = tp.toUpperCase();
+    document.getElementById('dbdg').className = 'dbdg ' + bc(tp);
+    document.getElementById('dtit').textContent = ti;
+    document.getElementById('dau').textContent = auths || 'Unknown';
+    document.getElementById('dtags').innerHTML = tags;
+    document.getElementById('ddesc').textContent = desc;
+    document.getElementById('dlink').href = 'https://mangadex.org/title/' + id;
+    document.getElementById('ccnt').textContent = '(' + curChs.length + ')';
+
+    if (!curChs.length) {
+      document.getElementById('clist').innerHTML = '<p style="color:var(--muted);padding:.7rem;font-size:.72rem">Belum ada chapter tersedia.</p>';
+      return;
+    }
+
+    document.getElementById('clist').innerHTML = curChs.map(function(ch, i) {
+      var n = ch.attributes.chapter || '?';
+      var ttl = ch.attributes.title || '';
+      var lg = (ch.attributes.translatedLanguage || '').toLowerCase();
+      var lgHtml = '<span class="chlg ' + (lg==='id'?'lg-id':'lg-en') + '">' + lg.toUpperCase() + '</span>';
+      return '<div class="chi" onclick="openRdr(' + i + ')">'
+        + '<span class="chn">CH.' + n + '</span>'
+        + '<span class="cht">' + (ttl || 'Chapter ' + n) + '</span>'
+        + lgHtml
+        + '<span class="chd">' + ago(ch.attributes.publishAt) + '</span>'
+        + '</div>';
+    }).join('');
+
+  } catch(e) {
+    document.getElementById('dtit').textContent = 'Gagal memuat';
+    document.getElementById('clist').innerHTML = '<p class="err" style="padding:.7rem;font-size:.72rem">❌ ' + e.message + '</p>';
+  }
+}
+
+function closeDet() { document.getElementById('dv').style.display = 'none'; }
+
+function readFirst() {
+  if (!curChs.length) return;
+  // CH.1 = index terakhir di array (array diurutkan desc)
+  closeDet();
+  openRdr(curChs.length - 1);
+}
+
+// ── READER ──────────────────────────────────────────────────
+function openRdr(idx) {
+  closeDet();
+  curIdx = idx;
+  document.getElementById('rv').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  // Populate chapter selector
+  var sel = document.getElementById('csel');
+  sel.innerHTML = curChs.map(function(ch, i) {
+    var n = ch.attributes.chapter || '?';
+    var lg = (ch.attributes.translatedLanguage || '').toUpperCase();
+    return '<option value="' + i + '"' + (i===idx?' selected':'') + '>'
+      + (lg==='ID'?'🇮🇩 ':'') + 'Ch.' + n + ' [' + lg + ']</option>';
+  }).join('');
+
+  loadPages(idx);
+}
+
+async function loadPages(idx) {
+  curIdx = idx;
+  var ch = curChs[idx];
+  if (!ch) return;
+
+  var ti = curManga ? mTitle(curManga) : '';
+  var n = ch.attributes.chapter || '?';
+  document.getElementById('rtit').textContent = ti + ' — Ch.' + n;
+  document.getElementById('csel').value = idx;
+  document.getElementById('pb').disabled = idx >= curChs.length - 1;
+  document.getElementById('nb').disabled = idx <= 0;
+
+  var pg = document.getElementById('pages');
+  pg.innerHTML = '<div class="sts"><span class="spin"></span>Memuat ch.' + n + '...</div>';
+
+  try {
+    var j = await api('/at-home/server/' + ch.id);
+    var base = j.baseUrl, hash = j.chapter.hash, imgs = j.chapter.data || [];
+
+    if (!imgs.length) {
+      pg.innerHTML = '<div class="sts">Tidak ada halaman.</div>';
+      return;
+    }
+
+    pg.innerHTML = imgs.map(function(img, i) {
+      // Gunakan worker proxy jika tersedia, fallback ke direct CDN
+      var src = W
+        ? W + '/page/' + encodeURIComponent(base) + '/' + hash + '/' + img
+        : base + '/data/' + hash + '/' + img;
+      return '<img src="' + src + '" alt="P' + (i+1) + '" loading="' + (i<3?'eager':'lazy') + '">';
+    }).join('');
+
+    document.getElementById('rv').scrollTop = 52;
+
+  } catch(e) {
+    pg.innerHTML = '<div class="sts err">❌ Gagal memuat halaman: ' + e.message + '</div>';
+  }
+}
+
+function navCh(d) {
+  var ni = curIdx - d; // desc array: -1 = next chapter, +1 = prev
+  if (ni >= 0 && ni < curChs.length) {
+    loadPages(ni);
+    document.getElementById('rv').scrollTop = 0;
+  }
+}
+function jumpCh(v) { loadPages(parseInt(v)); document.getElementById('rv').scrollTop = 0; }
+
+function closeRdr() {
+  document.getElementById('rv').style.display = 'none';
+  document.body.style.overflow = '';
+  if (curManga) openDet(curManga.id);
+}
+
+// ── INIT ────────────────────────────────────────────────────
+fetchPop();
+fetchNew();
+</script>
+</body>
+</html>
